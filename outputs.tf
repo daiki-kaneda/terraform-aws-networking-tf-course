@@ -1,29 +1,30 @@
-# 1. VPC ID
-# 2. Public Subnets - subnet_key => {subnet_id, availability_zone}
-# 3. Private Subnets - subnet_key => {subnet_id, availability_zone}
-
 locals {
   output_public_subnets = {
     for key in keys(local.public_subnets) : key => {
       subnet_id         = aws_subnet.this[key].id
       availability_zone = aws_subnet.this[key].availability_zone
-  } }
+    }
+  }
+
   output_private_subnets = {
     for key in keys(local.private_subnets) : key => {
       subnet_id         = aws_subnet.this[key].id
       availability_zone = aws_subnet.this[key].availability_zone
-  } }
+    }
+  }
 }
 
 output "vpc_id" {
-  description = "作成されたVPCのID"
+  description = "The ID of the created VPC."
   value       = aws_vpc.this.id
 }
+
 output "public_subnets" {
-  description = "作成されたパブリックサブネットのIDとAZ"
+  description = "The IDs and availability zones of the created public subnets."
   value       = local.output_public_subnets
 }
+
 output "private_subnets" {
-  description = "作成されたプライベートサブネットのIDとAZ"
+  description = "The IDs and availability zones of the created private subnets."
   value       = local.output_private_subnets
 }

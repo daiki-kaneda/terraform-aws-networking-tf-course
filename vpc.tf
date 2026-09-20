@@ -2,6 +2,7 @@ locals {
   public_subnets = {
     for key, config in var.subnet_config : key => config if config.public
   }
+
   private_subnets = {
     for key, config in var.subnet_config : key => config if !config.public
   }
@@ -26,18 +27,25 @@ resource "aws_subnet" "this" {
   cidr_block        = each.value.cidr_block
 
   tags = {
-    Name = each.key
+    Name   = each.key
     Access = each.value.public ? "Public" : "Private"
   }
-  lifecycle {
-    # precondition, postconditionはvalidationブロックと違い、外部のデータをバリデーションに利用できる
-    precondition {
-      condition     = contains(data.aws_availability_zones.available.names, each.value.az)
-      error_message = <<-EOT
-      サブネット"${each.key}"に設定されたAZが無効な値です。 設定された値: ${each.value.az}
 
-      設定されたリージョン"${data.aws_availability_zones.available.id}"は以下のAZをサポートしています。
-      [${join(", ", data.aws_availability_zones.available.names)}]
+  lifecycle {
+    # Unlike a validation block, precondition and postcondition blocks
+    # can use data from external sources for validation.
+    precondition {
+      condition = contains(
+        data.aws_availability_zones.available.names,
+        each.value.az
+      )
+
+      error_message = <<-EOT
+        The availability zone specified for subnet "${each.key}" is invalid.
+        Specified value: ${each.value.az}
+
+        The configured region "${data.aws_availability_zones.available.id}" supports the following availability zones:
+        [${join(", ", data.aws_availability_zones.available.names)}]
       EOT
     }
   }

@@ -1,4 +1,6 @@
 variable "vpc_config" {
+  description = "Configuration for the VPC."
+
   type = object({
     cidr_block = string
     name       = string
@@ -6,11 +8,13 @@ variable "vpc_config" {
 
   validation {
     condition     = can(cidrnetmask(var.vpc_config.cidr_block))
-    error_message = "設定されたVPCのCIDRが無効な値です"
+    error_message = "The specified VPC CIDR block is invalid."
   }
 }
 
 variable "subnet_config" {
+  description = "Configuration for the subnets."
+
   type = map(object({
     cidr_block = string
     public     = optional(bool, false)
@@ -21,6 +25,7 @@ variable "subnet_config" {
     condition = alltrue([
       for config in values(var.subnet_config) : can(cidrnetmask(config.cidr_block))
     ])
-    error_message = "少なくともひとつのサブネットのCIDRが無効な値です。"
+
+    error_message = "At least one subnet has an invalid CIDR block."
   }
 }
